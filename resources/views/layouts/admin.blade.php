@@ -18,11 +18,11 @@
 
     <div class="flex min-h-screen">
 
-        @include('partials.sidebar')
+        <x-sidebar />
 
         <div class="flex-1 flex flex-col">
 
-            @include('partials.navbar')
+            <x-navbar />
 
             <main class="p-6">
 
