@@ -28,8 +28,10 @@
             Kategori
         </a>
 
-        <a href="#"
-           class="block px-6 py-3 hover:bg-slate-800 transition">
+        <a href="{{ route('articles.index') }}"
+           class="{{ request()->routeIs('articles.*')
+                 ? 'bg-blue-600 text-white'
+                 : 'text-gray-700 hover:bg-gray-100' }}">
 
             Artikel
 

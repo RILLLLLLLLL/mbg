@@ -10,4 +10,13 @@ class Category extends Model
         'name',
         'slug',
     ];
+
+// Menambahkan relasi one-to-many antara Category dan Article. 
+// Setiap kategori dapat memiliki banyak article, sehingga kita menggunakan metode hasMany() untuk mendefinisikan relasi ini. 
+// Metode articles() akan mengembalikan semua artikel yang terkait dengan kategori tertentu.
+
+    public function articles()
+    {
+        return $this->hasMany(Article::class);
+    }
 }
