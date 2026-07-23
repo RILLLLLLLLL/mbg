@@ -114,75 +114,115 @@
 
         <tbody>
 
-<tbody>
+            <tbody>
 
-@foreach($latestArticles as $article)
+                @foreach($latestArticles as $article)
 
-<tr>
+                <tr>
 
-    <td class="p-3">
-        {{ $article->title }}
-    </td>
+                    <td class="p-3">
+                        {{ $article->title }}
+                    </td>
 
-    <td class="p-3">
+                    <td class="p-3">
 
-        @if($article->status == 'published')
+                        @if($article->status == 'published')
 
-            <span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm">
-                Published
-            </span>
+                            <span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm">
+                                Published
+                            </span>
 
-        @else
+                        @else
 
-            <span class="bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full text-sm">
-                Draft
-            </span>
+                            <span class="bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full text-sm">
+                                Draft
+                            </span>
 
-        @endif
+                        @endif
 
-    </td>
+                    </td>
 
-    <td class="p-3">
-        {{ $article->created_at->format('d M Y') }}
-    </td>
+                    <td class="p-3">
+                        {{ $article->created_at->format('d M Y') }}
+                    </td>
 
-</tr>
+                </tr>
 
-@endforeach
+                @endforeach
 
-</tbody>
+            </tbody>
 
-        <!-- @forelse($latestArticles as $article)
+        </tbody>
+
+    </table>
+
+</div>
+
+        <div class="bg-white rounded-xl shadow mt-8">
+
+    <div class="p-5 border-b">
+
+        <h3 class="font-semibold text-lg">
+            Artikel per Kategori
+        </h3>
+
+    </div>
+
+    <table class="min-w-full">
+
+        <thead class="bg-gray-100">
+
+            <tr>
+
+                <th class="p-3 text-left">
+                    Kategori
+                </th>
+
+                <th class="p-3 text-left">
+                    Jumlah Artikel
+                </th>
+
+            </tr>
+
+        </thead>
+
+        <tbody>
+
+        @foreach($artikelPerKategori as $item)
 
             <tr class="border-t">
 
                 <td class="p-3">
-                    {{ $article->title }}
+
+                    {{ $item->name }}
+
                 </td>
 
                 <td class="p-3">
-                    {{ ucfirst($article->status) }}
-                </td>
 
-                <td class="p-3">
-                    {{ $article->created_at->format('d M Y') }}
+                    <td class="p-3">
+                        <td class="p-3">
+
+    <div class="w-full bg-gray-200 rounded-full h-3">
+
+        <div
+            class="bg-blue-600 h-3 rounded-full"
+            style="width: {{ min($item->total * 10, 100) }}%">
+        </div>
+
+    </div>
+
+    <small class="text-gray-600">
+        {{ $item->total }} Artikel
+    </small>
+
+</td>
+
                 </td>
 
             </tr>
 
-        @empty
-
-            <tr>
-
-                <td colspan="3" class="text-center p-5">
-
-                    Belum ada artikel.
-
-                </td>
-
-            </tr>
-
-        @endforelse -->
+        @endforeach
 
         </tbody>
 

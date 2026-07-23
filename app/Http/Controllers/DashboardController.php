@@ -8,6 +8,8 @@ use App\Models\Category;
 use App\Models\User;
 use Illuminate\Http\Request;
 
+use Illuminate\Support\Facades\DB;
+
 class DashboardController extends Controller
 {
     public function index()
@@ -27,16 +29,23 @@ class DashboardController extends Controller
                         ->take(5)
                         ->get();
 
+    $artikelPerKategori = Article::select(
+            'categories.name',
+            DB::raw('COUNT(articles.id) as total')
+        )
+        ->join('categories', 'articles.category_id', '=', 'categories.id')
+        ->groupBy('categories.name')
+        ->get();
+
     return view('dashboard.index', compact(
         'totalArticles',
         'totalCategories',
         'totalPenulis',
         'published',
         'draft',
-        'latestArticles'
-
+        'latestArticles',
+        'artikelPerKategori'
         
-            
         ));
     }
 }

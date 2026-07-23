@@ -28,11 +28,11 @@
             Kategori
         </a>
 
-        <a href="{{ route('articles.index') }}"
-           class="{{ request()->routeIs('articles.*')
-                 ? 'bg-blue-600 text-white'
-                 : 'text-gray-700 hover:bg-gray-100' }}">
-
+        <a 
+            href="{{ route('articles.index') }}"
+            class="{{ request()->routeIs('articles.*')
+                    ? 'bg-blue-600 text-white'
+                    : 'text-gray-700 hover:bg-gray-100' }}">
             Artikel
 
         </a>
