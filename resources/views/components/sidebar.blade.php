@@ -37,8 +37,10 @@
 
         </a>
 
-        <a href="#"
-           class="block px-6 py-3 hover:bg-slate-800 transition">
+        <a href="{{ route('comments.index') }}"
+            class="{{ request()->routeIs('comments.*')
+                    ? 'bg-blue-600 text-white'
+                    : 'text-gray-700 hover:bg-gray-100' }}">
 
             Komentar
 

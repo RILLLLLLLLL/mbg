@@ -14,13 +14,29 @@ class FrontendController extends Controller
             ->latest()
             ->paginate(6);
 
-        return view('fronted.index', compact('articles'));
+        return view('frontend.index', compact('articles'));
     }
 
     public function show(Article $article)
     {
-        abort_if($article->status != 'published',404);
+        $article->load([
 
-        return view('fronted.show', compact('article'));
+            'category',
+
+            'user',
+
+            'comments' => function ($query) {
+
+                $query->where('status', 'approved')
+                    ->latest();
+
+            }
+
+        ]);
+
+        return view(
+            'frontend.show',
+            compact('article')
+        );
     }
 }
