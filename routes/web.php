@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ArticleController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\FrontendController;
 
 Route::get('/', function () {
     return view ('welcome');
@@ -32,5 +33,11 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('articles', ArticleController::class);
 
 });
+
+Route::get('/', [FrontendController::class, 'index'])
+    ->name('home');
+
+Route::get('/artikel/{article:slug}', [FrontendController::class, 'show'])
+    ->name('artikel.show');
 
 require __DIR__.'/auth.php';
