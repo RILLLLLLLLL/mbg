@@ -11,9 +11,11 @@ class Article extends Model
         'user_id',
         'title',
         'slug',
+        'excerpt',
         'content',
         'thumbnail',
         'status',
+        'published_at',
     ];
 
     /*
