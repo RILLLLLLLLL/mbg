@@ -16,6 +16,11 @@ class Article extends Model
         'thumbnail',
         'status',
         'published_at',
+        'views_count',
+    ];
+
+    protected $casts = [
+        'published_at' => 'datetime',
     ];
 
     /*

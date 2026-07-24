@@ -14,45 +14,28 @@ class ArticleResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-
-    return [
-
-                'id' => $this->id,
-
-                'title' => $this->title,
-
-                'slug' => $this->slug,
-
-                'excerpt' => $this->excerpt,
-
-                'content' => $this->content,
-
-                'thumbnail' => asset('storage/' . $this->thumbnail),
-
-                'status' => $this->status,
-
-                'published_at' => $this->published_at,
-
-                'category' => [
-
-                    'id' => $this->category->id,
-
-                    'name' => $this->category->name,
-
-                ],
-
-                'author' => [
-
-                    'id' => $this->user->id,
-
-                    'name' => $this->user->name,
-
-                ],
-
-                'created_at' => $this->created_at,
-
-                'updated_at' => $this->updated_at,
-
-             ];
+        return [
+            'id'           => $this->id,
+            'title'        => $this->title,
+            'slug'         => $this->slug,
+            'excerpt'      => $this->excerpt,
+            'content'      => $this->content,
+            'thumbnail'    => $this->thumbnail
+                                ? asset('storage/' . $this->thumbnail)
+                                : null,
+            'status'       => $this->status,
+            'published_at' => $this->published_at,
+            'category'     => $this->whenLoaded('category', fn () => [
+                'id'   => $this->category->id,
+                'name' => $this->category->name,
+                'slug' => $this->category->slug,
+            ]),
+            'author'       => $this->whenLoaded('user', fn () => [
+                'id'   => $this->user->id,
+                'name' => $this->user->name,
+            ]),
+            'created_at'   => $this->created_at,
+            'updated_at'   => $this->updated_at,
+        ];
     }
 }

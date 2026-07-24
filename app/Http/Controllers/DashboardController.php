@@ -37,6 +37,17 @@ class DashboardController extends Controller
         ->groupBy('categories.name')
         ->get();
 
+    $artikelPerPenulis = Article::select(
+            'users.name',
+            DB::raw('COUNT(articles.id) as total'),
+            DB::raw('SUM(CASE WHEN articles.status = "published" THEN 1 ELSE 0 END) as published'),
+            DB::raw('SUM(CASE WHEN articles.status = "draft" THEN 1 ELSE 0 END) as draft')
+        )
+        ->join('users', 'articles.user_id', '=', 'users.id')
+        ->groupBy('users.name')
+        ->orderByDesc('total')
+        ->get();
+
     return view('dashboard.index', compact(
         'totalArticles',
         'totalCategories',
@@ -44,8 +55,8 @@ class DashboardController extends Controller
         'published',
         'draft',
         'latestArticles',
-        'artikelPerKategori'
-        
+        'artikelPerKategori',
+        'artikelPerPenulis'
         ));
     }
 }

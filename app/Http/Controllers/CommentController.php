@@ -78,11 +78,13 @@ class CommentController extends Controller
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Hapus komentar (Admin only — dijaga di routes).
      */
     public function destroy(Comment $comment)
     {
-        //
+        $comment->delete();
+
+        return back()->with('success', 'Komentar berhasil dihapus.');
     }
 
     public function approve(Comment $comment)

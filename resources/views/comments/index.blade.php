@@ -82,34 +82,25 @@ Pending
 
 </td>
 
-<td class="p-3 flex gap-2">
+<td class="p-3 flex gap-2 flex-wrap">
 
-<form
-method="POST"
-action="{{ route('comments.approve',$comment) }}">
-
-@csrf
-@method('PATCH')
-
-<button
-class="bg-green-600 text-white px-3 py-1 rounded">
-
-Approve
-
-</button>
-
+<form method="POST" action="{{ route('comments.approve', $comment) }}">
+    @csrf
+    @method('PATCH')
+    <button class="bg-green-600 text-white px-3 py-1 rounded text-sm">Approve</button>
 </form>
 
 <form action="{{ route('comments.reject', $comment) }}" method="POST">
-
     @csrf
     @method('PATCH')
+    <button class="bg-yellow-500 text-white px-3 py-1 rounded text-sm">Pending</button>
+</form>
 
-    <button
-        class="bg-red-600 text-white px-3 py-1 rounded">
-        Reject
-    </button>
-
+<form action="{{ route('comments.destroy', $comment) }}" method="POST"
+      onsubmit="return confirm('Yakin ingin menghapus komentar ini?')">
+    @csrf
+    @method('DELETE')
+    <button class="bg-red-600 text-white px-3 py-1 rounded text-sm">Hapus</button>
 </form>
 
 </td>

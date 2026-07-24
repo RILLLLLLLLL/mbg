@@ -4,177 +4,155 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreArticleRequest;
 use App\Http\Requests\UpdateArticleRequest;
-
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-
 use Illuminate\Http\Request;
-
 use App\Models\Article;
 use App\Models\Category;
+use Carbon\Carbon;
 
 class ArticleController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Daftar artikel dengan search, filter kategori, filter status, dan pagination.
      */
     public function index(Request $request)
     {
-        $articles = Article::with([
-                'category',
-                'user'
-            ])
-            ->when($request->filled('search'), function ($query) use ($request) {
-                $query->where('title', 'like', '%' . $request->search . '%');
-            })
-            ->when($request->filled('category'), function ($query) use ($request) {
-                $query->where('category_id', $request->category);
-            })
-            ->when($request->filled('status'), function ($query) use ($request) {
-                $query->where('status', $request->status);
-            })
-            ->latest()
-            ->paginate(5)
-            ->withQueryString();
+        $query = Article::with(['category', 'user']);
 
-        // $categories = Category::orderBy('name')->paginate(5);
+        // Penulis hanya melihat artikel milik sendiri
+        if (auth()->user()->hasRole('Penulis')) {
+            $query->where('user_id', auth()->id());
+        }
+
+        // Search by judul
+        $query->when($request->filled('search'), function ($q) use ($request) {
+            $q->where('title', 'like', '%' . $request->search . '%');
+        });
+
+        // Filter by kategori
+        $query->when($request->filled('category'), function ($q) use ($request) {
+            $q->where('category_id', $request->category);
+        });
+
+        // Filter by status
+        $query->when($request->filled('status'), function ($q) use ($request) {
+            $q->where('status', $request->status);
+        });
+
+        $articles   = $query->latest()->paginate(10)->withQueryString();
         $categories = Category::orderBy('name')->get();
 
-        return view('articles.index', compact(
-            'articles',
-            'categories'
-        ));
+        return view('articles.index', compact('articles', 'categories'));
     }
 
     /**
-     * Show the form for creating a new resource.
+     * Form tambah artikel.
      */
     public function create()
     {
         $categories = Category::orderBy('name')->get();
-
-    return view('articles.create', compact('categories'));  
+        return view('articles.create', compact('categories'));
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Simpan artikel baru.
      */
     public function store(StoreArticleRequest $request)
     {
-        
-    $thumbnail = null;
+        $thumbnail = null;
 
-    if ($request->hasFile('thumbnail')) {
-
-        $thumbnail = $request->file('thumbnail')
-                            ->store('articles', 'public');
-
-    }
+        if ($request->hasFile('thumbnail')) {
+            $thumbnail = $request->file('thumbnail')->store('articles', 'public');
+        }
 
         Article::create([
-
-            'category_id' => $request->category_id,
-
-            'user_id' => Auth::id(),
-
-            'title' => $request->title,
-
-            'slug' => Str::slug($request->title),
-
-            'content' => $request->content,
-
-            'thumbnail' => $thumbnail,
-
-            'status' => $request->status,
-
+            'category_id'  => $request->category_id,
+            'user_id'      => Auth::id(),
+            'title'        => $request->title,
+            'slug'         => Str::slug($request->title),
+            'excerpt'      => $request->excerpt ?? Str::limit(strip_tags($request->content), 160),
+            'content'      => $request->content,
+            'thumbnail'    => $thumbnail,
+            'status'       => $request->status,
+            'published_at' => $request->status === 'published' ? Carbon::now() : null,
         ]);
 
-        return redirect()
-            ->route('articles.index')
+        return redirect()->route('articles.index')
             ->with('success', 'Artikel berhasil dibuat.');
     }
 
     /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
+     * Form edit artikel.
      */
     public function edit(Article $article)
     {
-        $categories = Category::orderBy('name')->get();
+        if (auth()->user()->hasRole('Penulis') && $article->user_id !== auth()->id()) {
+            abort(403, 'Anda tidak berhak mengedit artikel ini.');
+        }
 
-        return view('articles.edit', compact(
-            'article',
-            'categories'
-        ));
+        $categories = Category::orderBy('name')->get();
+        return view('articles.edit', compact('article', 'categories'));
     }
 
     /**
-     * Update the specified resource in storage.
+     * Update artikel.
      */
     public function update(UpdateArticleRequest $request, Article $article)
     {
+        if (auth()->user()->hasRole('Penulis') && $article->user_id !== auth()->id()) {
+            abort(403, 'Anda tidak berhak mengubah artikel ini.');
+        }
 
-    $thumbnail = $article->thumbnail;
+        $thumbnail = $article->thumbnail;
 
-    if ($request->hasFile('thumbnail')) {
+        if ($request->hasFile('thumbnail')) {
+            if ($article->thumbnail) {
+                Storage::disk('public')->delete($article->thumbnail);
+            }
+            $thumbnail = $request->file('thumbnail')->store('articles', 'public');
+        }
 
-         if ($article->thumbnail) {
-
-        Storage::disk('public')->delete($article->thumbnail);
-
-    }
-
-        $thumbnail = $request->file('thumbnail')
-                            ->store('articles', 'public');
-
-    }
+        // Tentukan published_at: set saat pertama kali publish
+        $publishedAt = $article->published_at;
+        if ($request->status === 'published' && ! $publishedAt) {
+            $publishedAt = Carbon::now();
+        } elseif ($request->status === 'draft') {
+            $publishedAt = null;
+        }
 
         $article->update([
-
-            'category_id' => $request->category_id,
-
-            'title' => $request->title,
-
-            'slug' => Str::slug($request->title),
-
-            'content' => $request->content,
-
-            'thumbnail' => $thumbnail,
-
-            'status' => $request->status,
-
+            'category_id'  => $request->category_id,
+            'title'        => $request->title,
+            'slug'         => Str::slug($request->title),
+            'excerpt'      => $request->excerpt ?? Str::limit(strip_tags($request->content), 160),
+            'content'      => $request->content,
+            'thumbnail'    => $thumbnail,
+            'status'       => $request->status,
+            'published_at' => $publishedAt,
         ]);
 
-        return redirect()
-                ->route('articles.index')
-                ->with('success','Artikel berhasil diperbarui.');
+        return redirect()->route('articles.index')
+            ->with('success', 'Artikel berhasil diperbarui.');
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Hapus artikel beserta thumbnail-nya.
      */
     public function destroy(Article $article)
     {
+        if (auth()->user()->hasRole('Penulis') && $article->user_id !== auth()->id()) {
+            abort(403, 'Anda tidak berhak menghapus artikel ini.');
+        }
 
-        if ($article->thumbnail &&
-            Storage::disk('public')->exists($article->thumbnail)) {
-
+        if ($article->thumbnail && Storage::disk('public')->exists($article->thumbnail)) {
             Storage::disk('public')->delete($article->thumbnail);
-
         }
 
         $article->delete();
 
-        return redirect()
-            ->route('articles.index')
+        return redirect()->route('articles.index')
             ->with('success', 'Artikel berhasil dihapus.');
     }
 }
